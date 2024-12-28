@@ -27,41 +27,61 @@
         renderer.setSize(window.innerWidth, window.innerHeight);
         document.body.appendChild(renderer.domElement);
 
-        // Crear un cubo para representar al jugador
-        const geometry = new THREE.BoxGeometry(1, 2, 1);
-        const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-        const player = new THREE.Mesh(geometry, material);
-        scene.add(player);
+        // Crear un personaje "blocky" (simple forma cúbica)
+        const bodyGeometry = new THREE.BoxGeometry(1, 2, 1);
+        const headGeometry = new THREE.BoxGeometry(1, 1, 1);
+        const armGeometry = new THREE.BoxGeometry(0.5, 1, 0.5);
+        const legGeometry = new THREE.BoxGeometry(0.5, 1, 0.5);
+
+        const bodyMaterial = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
+        const headMaterial = new THREE.MeshBasicMaterial({ color: 0xffcc00 });
+        const armMaterial = new THREE.MeshBasicMaterial({ color: 0x00ccff });
+        const legMaterial = new THREE.MeshBasicMaterial({ color: 0x0000ff });
+
+        // Crear las partes del cuerpo
+        const body = new THREE.Mesh(bodyGeometry, bodyMaterial);
+        const head = new THREE.Mesh(headGeometry, headMaterial);
+        const leftArm = new THREE.Mesh(armGeometry, armMaterial);
+        const rightArm = new THREE.Mesh(armGeometry, armMaterial);
+        const leftLeg = new THREE.Mesh(legGeometry, legMaterial);
+        const rightLeg = new THREE.Mesh(legGeometry, legMaterial);
+
+        // Posicionar las partes del cuerpo
+        head.position.set(0, 1.5, 0);
+        leftArm.position.set(-1, 0.5, 0);
+        rightArm.position.set(1, 0.5, 0);
+        leftLeg.position.set(-0.5, -1, 0);
+        rightLeg.position.set(0.5, -1, 0);
+
+        // Agregar las partes del cuerpo a la escena
+        scene.add(body);
+        scene.add(head);
+        scene.add(leftArm);
+        scene.add(rightArm);
+        scene.add(leftLeg);
+        scene.add(rightLeg);
 
         // Posicionar la cámara
-        camera.position.z = 5;
+        camera.position.set(0, 2, 5);
+        camera.lookAt(new THREE.Vector3(0, 1.5, 0));  // Mira hacia la cabeza del personaje
 
-        // Crear una skybox
+        // Skybox
         const loader = new THREE.CubeTextureLoader();
         const texture = loader.load([
-            'path_to_skybox/px.jpg',  // reemplace con tus imágenes
-            'path_to_skybox/nx.jpg',  // reemplace con tus imágenes
-            'path_to_skybox/py.jpg',  // reemplace con tus imágenes
-            'path_to_skybox/ny.jpg',  // reemplace con tus imágenes
-            'path_to_skybox/pz.jpg',  // reemplace con tus imágenes
-            'path_to_skybox/nz.jpg'   // reemplace con tus imágenes
+            'path_to_skybox/px.jpg', 
+            'path_to_skybox/nx.jpg', 
+            'path_to_skybox/py.jpg', 
+            'path_to_skybox/ny.jpg', 
+            'path_to_skybox/pz.jpg', 
+            'path_to_skybox/nz.jpg'
         ]);
         scene.background = texture;
 
-        // Controles del jugador
+        // Variables de controles de movimiento
         let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false, jump = false;
         let velocity = new THREE.Vector3();
+        const controls = { W: false, A: false, S: false, D: false, Space: false };
 
-        // Variables para las teclas
-        const controls = {
-            W: false,
-            A: false,
-            S: false,
-            D: false,
-            Space: false
-        };
-
-        // Detectar teclas presionadas
         document.addEventListener('keydown', (event) => {
             if (event.key === 'w') controls.W = true;
             if (event.key === 'a') controls.A = true;
@@ -78,24 +98,53 @@
             if (event.key === ' ') controls.Space = false;
         });
 
+        // Control de la cámara con el mouse
+        let isRightMouseDown = false;
+        let mouseX = 0, mouseY = 0;
+        const sensitivity = 0.1;
+
+        document.addEventListener('mousedown', (event) => {
+            if (event.button === 2) { // Clic derecho
+                isRightMouseDown = true;
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            isRightMouseDown = false;
+        });
+
+        document.addEventListener('mousemove', (event) => {
+            if (isRightMouseDown) {
+                mouseX = event.movementX;
+                mouseY = event.movementY;
+                camera.rotation.y -= mouseX * sensitivity;
+                camera.rotation.x -= mouseY * sensitivity;
+            }
+        });
+
+        // Control de zoom con la rueda del ratón
+        document.addEventListener('wheel', (event) => {
+            camera.position.z += event.deltaY * 0.01;
+        });
+
         // Lógica de movimiento del jugador
         function updatePlayerMovement() {
             let speed = 0.1;
-            if (controls.W) player.position.z -= speed;
-            if (controls.S) player.position.z += speed;
-            if (controls.A) player.position.x -= speed;
-            if (controls.D) player.position.x += speed;
-            if (controls.Space) player.position.y += speed * 2;  // Simulamos un salto
+            if (controls.W) body.position.z -= speed;
+            if (controls.S) body.position.z += speed;
+            if (controls.A) body.position.x -= speed;
+            if (controls.D) body.position.x += speed;
+            if (controls.Space) body.position.y += speed * 2;
         }
 
-        // Redibujar la escena
+        // Animación y renderizado de la escena
         function animate() {
             requestAnimationFrame(animate);
             updatePlayerMovement();
             renderer.render(scene, camera);
         }
 
-        // Función de redimensionado de ventana
+        // Redimensionado de la ventana
         window.addEventListener('resize', () => {
             renderer.setSize(window.innerWidth, window.innerHeight);
             camera.aspect = window.innerWidth / window.innerHeight;
