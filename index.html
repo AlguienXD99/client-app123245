@@ -53,15 +53,13 @@
         leftLeg.position.set(-0.5, -1, 0);
         rightLeg.position.set(0.5, -1, 0);
 
-        // Crear un contenedor para el personaje
-        const character = new THREE.Group();
-        character.add(body);
-        character.add(head);
-        character.add(leftArm);
-        character.add(rightArm);
-        character.add(leftLeg);
-        character.add(rightLeg);
-        scene.add(character);
+        // Agregar las partes del cuerpo a la escena
+        scene.add(body);
+        scene.add(head);
+        scene.add(leftArm);
+        scene.add(rightArm);
+        scene.add(leftLeg);
+        scene.add(rightLeg);
 
         // Posicionar la cámara
         camera.position.set(0, 2, 5);
@@ -80,7 +78,9 @@
         scene.background = texture;
 
         // Variables de controles de movimiento
-        let controls = { W: false, A: false, S: false, D: false, Space: false };
+        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false, jump = false;
+        let velocity = new THREE.Vector3();
+        const controls = { W: false, A: false, S: false, D: false, Space: false };
 
         document.addEventListener('keydown', (event) => {
             if (event.key === 'w') controls.W = true;
@@ -98,10 +98,10 @@
             if (event.key === ' ') controls.Space = false;
         });
 
-        // Variables de cámara y mouse
+        // Control de la cámara con el mouse
         let isRightMouseDown = false;
         let mouseX = 0, mouseY = 0;
-        const sensitivity = 0.002;  // Reducción de la sensibilidad
+        const sensitivity = 0.1;
 
         document.addEventListener('mousedown', (event) => {
             if (event.button === 2) { // Clic derecho
@@ -117,8 +117,8 @@
             if (isRightMouseDown) {
                 mouseX = event.movementX;
                 mouseY = event.movementY;
-                camera.rotation.y -= mouseX * sensitivity;  // Rotación en el eje Y
-                camera.rotation.x -= mouseY * sensitivity;  // Rotación en el eje X (limitada)
+                camera.rotation.y -= mouseX * sensitivity;
+                camera.rotation.x -= mouseY * sensitivity;
             }
         });
 
@@ -129,27 +129,12 @@
 
         // Lógica de movimiento del jugador
         function updatePlayerMovement() {
-            const speed = 0.1;
-            const turnSpeed = 0.05;  // Velocidad de rotación
-
-            // Movimiento hacia adelante y atrás
-            if (controls.W) character.position.z -= speed;
-            if (controls.S) character.position.z += speed;
-
-            // Movimiento hacia los lados
-            if (controls.A) character.position.x -= speed;
-            if (controls.D) character.position.x += speed;
-
-            // Movimiento hacia arriba (salto)
-            if (controls.Space) character.position.y += speed * 2;
-
-            // Actualizar la cámara para que siga al personaje
-            camera.position.x = character.position.x;
-            camera.position.z = character.position.z + 5;  // Mantén la cámara detrás del personaje
-            camera.position.y = character.position.y + 2;  // Mantén la cámara a la altura de la cabeza
-
-            // Rotación de la cámara para que siga el personaje
-            camera.lookAt(character.position);
+            let speed = 0.1;
+            if (controls.W) body.position.z -= speed;
+            if (controls.S) body.position.z += speed;
+            if (controls.A) body.position.x -= speed;
+            if (controls.D) body.position.x += speed;
+            if (controls.Space) body.position.y += speed * 2;
         }
 
         // Animación y renderizado de la escena
