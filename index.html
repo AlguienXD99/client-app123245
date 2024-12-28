@@ -80,9 +80,7 @@
         scene.background = texture;
 
         // Variables de controles de movimiento
-        let moveForward = false, moveBackward = false, moveLeft = false, moveRight = false, jump = false;
-        let velocity = new THREE.Vector3();
-        const controls = { W: false, A: false, S: false, D: false, Space: false };
+        let controls = { W: false, A: false, S: false, D: false, Space: false };
 
         document.addEventListener('keydown', (event) => {
             if (event.key === 'w') controls.W = true;
@@ -100,7 +98,7 @@
             if (event.key === ' ') controls.Space = false;
         });
 
-        // Control de la cámara con el mouse
+        // Variables de cámara y mouse
         let isRightMouseDown = false;
         let mouseX = 0, mouseY = 0;
         const sensitivity = 0.002;  // Reducción de la sensibilidad
@@ -131,17 +129,26 @@
 
         // Lógica de movimiento del jugador
         function updatePlayerMovement() {
-            let speed = 0.1;
+            const speed = 0.1;
+            const turnSpeed = 0.05;  // Velocidad de rotación
+
+            // Movimiento hacia adelante y atrás
             if (controls.W) character.position.z -= speed;
             if (controls.S) character.position.z += speed;
+
+            // Movimiento hacia los lados
             if (controls.A) character.position.x -= speed;
             if (controls.D) character.position.x += speed;
+
+            // Movimiento hacia arriba (salto)
             if (controls.Space) character.position.y += speed * 2;
 
             // Actualizar la cámara para que siga al personaje
             camera.position.x = character.position.x;
             camera.position.z = character.position.z + 5;  // Mantén la cámara detrás del personaje
             camera.position.y = character.position.y + 2;  // Mantén la cámara a la altura de la cabeza
+
+            // Rotación de la cámara para que siga el personaje
             camera.lookAt(character.position);
         }
 
